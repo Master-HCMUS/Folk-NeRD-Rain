@@ -85,8 +85,29 @@ python train_kaggle.py \
 ```bash
 python test.py \
     --input-dir /kaggle/input/gtav-nightrain-rerendered-version/GTAV-NightRain/test/rainy \
-    --output-dir /kaggle/working/results/ \
+    --output-dir /kaggle/working/results/GTAV_test \
     --weights /kaggle/working/checkpoints/Deraining/models/GTAV_v1/model_best.pth
+```
+
+## 📊 Evaluate PSNR and SSIM
+
+```bash
+python evaluate_metrics.py \
+    --result_dir /kaggle/working/results/GTAV_test \
+    --gt_dir /kaggle/input/gtav-nightrain-rerendered-version/GTAV-NightRain/test/gt \
+    --dataset_name "GTAV-NightRain"
+```
+
+Or use inline Python:
+```python
+from evaluate_metrics import evaluate_dataset
+
+psnr, ssim = evaluate_dataset(
+    '/kaggle/working/results/GTAV_test',
+    '/kaggle/input/gtav-nightrain-rerendered-version/GTAV-NightRain/test/gt',
+    'GTAV-NightRain'
+)
+print(f"PSNR: {psnr:.4f} dB, SSIM: {ssim:.4f}")
 ```
 
 ## 💾 Download Results
