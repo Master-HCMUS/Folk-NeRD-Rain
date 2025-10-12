@@ -49,6 +49,8 @@ parser.add_argument('--patch_size', default=256, type=int, help='patch size')
 parser.add_argument('--num_epochs', default=3000, type=int, help='num_epochs')
 parser.add_argument('--batch_size', default=1, type=int, help='batch_size')
 parser.add_argument('--val_epochs', default=1, type=int, help='val_epochs')
+parser.add_argument('--input_subdir', default='input', type=str, help='Input subdirectory name (e.g., "rainy" for GTAV)')
+parser.add_argument('--target_subdir', default='target', type=str, help='Target subdirectory name (e.g., "gt" for GTAV)')
 args = parser.parse_args()
 
 mode = args.mode
@@ -123,11 +125,15 @@ criterion_fft = losses.fftLoss()
 criterion_L1 = nn.L1Loss(size_average=True)
 
 ######### DataLoaders ###########
-train_dataset = get_training_data(train_dir, {'patch_size': patch_size})
+train_dataset = get_training_data(train_dir, {'patch_size': patch_size}, 
+                                  input_subdir=args.input_subdir, 
+                                  target_subdir=args.target_subdir)
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=False,
                           pin_memory=True)
 
-val_dataset = get_validation_data(val_dir, {'patch_size': patch_size})
+val_dataset = get_validation_data(val_dir, {'patch_size': patch_size},
+                                  input_subdir=args.input_subdir,
+                                  target_subdir=args.target_subdir)
 val_loader = DataLoader(dataset=val_dataset, batch_size=1, shuffle=False, num_workers=0, drop_last=False,
                         pin_memory=True)
 
