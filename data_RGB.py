@@ -1,13 +1,13 @@
 from dataset_RGB import *
 
 
-def get_training_data(rgb_dir, img_options):
+def get_training_data(rgb_dir, img_options, input_subdir='input', target_subdir='target'):
     assert os.path.exists(rgb_dir)
-    return DataLoaderTrain(rgb_dir, img_options)
+    return DataLoaderTrain(rgb_dir, img_options, input_subdir=input_subdir, target_subdir=target_subdir)
 
-def get_validation_data(rgb_dir, img_options):
+def get_validation_data(rgb_dir, img_options, input_subdir='input', target_subdir='target'):
     assert os.path.exists(rgb_dir)
-    return DataLoaderVal(rgb_dir, img_options)
+    return DataLoaderVal(rgb_dir, img_options, input_subdir=input_subdir, target_subdir=target_subdir)
 
 def get_test_data(rgb_dir, img_options):
     assert os.path.exists(rgb_dir)

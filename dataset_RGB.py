@@ -11,14 +11,15 @@ def is_image_file(filename):
     return any(filename.endswith(extension) for extension in ['jpeg', 'JPEG', 'jpg', 'png', 'JPG', 'PNG', 'gif'])
 
 class DataLoaderTrain(Dataset):
-    def __init__(self, rgb_dir, img_options=None):
+    def __init__(self, rgb_dir, img_options=None, input_subdir='input', target_subdir='target'):
         super(DataLoaderTrain, self).__init__()
 
-        inp_files = sorted(os.listdir(os.path.join(rgb_dir, 'input')))
-        tar_files = sorted(os.listdir(os.path.join(rgb_dir, 'target')))
+        # Support both 'input/target' and 'rainy/gt' directory structures
+        inp_files = sorted(os.listdir(os.path.join(rgb_dir, input_subdir)))
+        tar_files = sorted(os.listdir(os.path.join(rgb_dir, target_subdir)))
 
-        self.inp_filenames = [os.path.join(rgb_dir, 'input', x)  for x in inp_files if is_image_file(x)]
-        self.tar_filenames = [os.path.join(rgb_dir, 'target', x) for x in tar_files if is_image_file(x)]
+        self.inp_filenames = [os.path.join(rgb_dir, input_subdir, x)  for x in inp_files if is_image_file(x)]
+        self.tar_filenames = [os.path.join(rgb_dir, target_subdir, x) for x in tar_files if is_image_file(x)]
 
         self.img_options = img_options
         self.sizex       = len(self.tar_filenames)  # get the size of target
@@ -99,14 +100,15 @@ class DataLoaderTrain(Dataset):
         return tar_img, inp_img, filename
 
 class DataLoaderVal(Dataset):
-    def __init__(self, rgb_dir, img_options=None, rgb_dir2=None):
+    def __init__(self, rgb_dir, img_options=None, rgb_dir2=None, input_subdir='input', target_subdir='target'):
         super(DataLoaderVal, self).__init__()
 
-        inp_files = sorted(os.listdir(os.path.join(rgb_dir, 'input')))
-        tar_files = sorted(os.listdir(os.path.join(rgb_dir, 'target')))
+        # Support both 'input/target' and 'rainy/gt' directory structures
+        inp_files = sorted(os.listdir(os.path.join(rgb_dir, input_subdir)))
+        tar_files = sorted(os.listdir(os.path.join(rgb_dir, target_subdir)))
 
-        self.inp_filenames = [os.path.join(rgb_dir, 'input', x)  for x in inp_files if is_image_file(x)]
-        self.tar_filenames = [os.path.join(rgb_dir, 'target', x) for x in tar_files if is_image_file(x)]
+        self.inp_filenames = [os.path.join(rgb_dir, input_subdir, x)  for x in inp_files if is_image_file(x)]
+        self.tar_filenames = [os.path.join(rgb_dir, target_subdir, x) for x in tar_files if is_image_file(x)]
 
         self.img_options = img_options
         self.sizex       = len(self.tar_filenames)  # get the size of target

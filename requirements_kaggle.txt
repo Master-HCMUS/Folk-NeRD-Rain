@@ -1,0 +1,18 @@
+# Kaggle-specific requirements
+# Most packages are pre-installed on Kaggle, only need these extras:
+
+einops>=0.6.0
+kornia>=0.6.8
+timm>=0.9.0
+
+# Note: The following are already available on Kaggle:
+# - torch
+# - torchvision
+# - numpy
+# - pillow
+# - scikit-image
+# - tqdm
+# - tensorboard
+
+# Install warmup scheduler separately:
+# cd pytorch-gradual-warmup-lr && python setup.py install
