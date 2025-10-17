@@ -82,19 +82,26 @@ def compute_ssim(img1, img2, data_range=255):
     return ssim(img1, img2, data_range=data_range)
 
 
-def evaluate_dataset(result_dir, gt_dir, dataset_name='Dataset'):
+def evaluate_dataset(result_dir, gt_dir, dataset_name='Dataset', filter_pattern=None):
     """
     Evaluate PSNR and SSIM for a dataset
     Args:
         result_dir: directory containing derained results
         gt_dir: directory containing ground truth images
         dataset_name: name of the dataset for display
+        filter_pattern: if set, only evaluate result files matching this pattern
+                       (e.g., filter_pattern='_00' to only evaluate first patch)
     Returns:
         tuple: (average_psnr, average_ssim)
     """
     # Get list of result images
     result_files = sorted(glob(os.path.join(result_dir, '*.png')) + 
                          glob(os.path.join(result_dir, '*.jpg')))
+    
+    # Apply filter if specified
+    if filter_pattern:
+        result_files = [f for f in result_files if filter_pattern in os.path.basename(f)]
+        print(f"Filter pattern '{filter_pattern}' applied")
     
     # Get list of ground truth images
     gt_files = sorted(glob(os.path.join(gt_dir, '*.png')) + 
@@ -119,19 +126,32 @@ def evaluate_dataset(result_dir, gt_dir, dataset_name='Dataset'):
     for result_file in tqdm(result_files, desc=f"Evaluating {dataset_name}"):
         result_name = os.path.basename(result_file)
         
+        # Extract base name by removing window suffix (e.g., 0000_00.png -> 0000.png)
+        result_basename = os.path.splitext(result_name)[0]
+        result_ext = os.path.splitext(result_name)[1]
+        
+        # Remove window suffixes like _00, _01, _02, etc.
+        if '_' in result_basename:
+            parts = result_basename.split('_')
+            # Check if last part is a number (window index)
+            if parts[-1].isdigit():
+                result_basename = '_'.join(parts[:-1])
+        
         # Try to find matching ground truth file
         gt_file = None
+        
+        # First try exact match with reconstructed basename
         for gt_path in gt_files:
-            if os.path.basename(gt_path) == result_name:
+            gt_name = os.path.basename(gt_path)
+            gt_basename = os.path.splitext(gt_name)[0]
+            if gt_basename == result_basename:
                 gt_file = gt_path
                 break
         
-        # If exact match not found, try without extension
+        # If still not found, try original filename match
         if gt_file is None:
-            result_basename = os.path.splitext(result_name)[0]
             for gt_path in gt_files:
-                gt_basename = os.path.splitext(os.path.basename(gt_path))[0]
-                if gt_basename == result_basename:
+                if os.path.basename(gt_path) == result_name:
                     gt_file = gt_path
                     break
         
@@ -187,6 +207,8 @@ def main():
                        help='Directory containing ground truth images')
     parser.add_argument('--dataset_name', type=str, default='Test Dataset',
                        help='Name of the dataset for display')
+    parser.add_argument('--filter_pattern', type=str, default=None,
+                       help='Filter pattern for result files (e.g., "_00" to only evaluate first window)')
     parser.add_argument('--multiple_datasets', action='store_true',
                        help='Evaluate multiple datasets (result_dir and gt_dir should contain subdirectories)')
     
@@ -213,7 +235,7 @@ def main():
                 print(f"Warning: Ground truth directory not found for {dataset}: {gt_subdir}")
                 continue
             
-            psnr_val, ssim_val = evaluate_dataset(result_subdir, gt_subdir, dataset)
+            psnr_val, ssim_val = evaluate_dataset(result_subdir, gt_subdir, dataset, args.filter_pattern)
             total_psnr += psnr_val
             total_ssim += ssim_val
             num_datasets += 1
@@ -226,7 +248,7 @@ def main():
             print("="*80)
     else:
         # Evaluate single dataset
-        evaluate_dataset(args.result_dir, args.gt_dir, args.dataset_name)
+        evaluate_dataset(args.result_dir, args.gt_dir, args.dataset_name, args.filter_pattern)
         print("="*80)
 
 
