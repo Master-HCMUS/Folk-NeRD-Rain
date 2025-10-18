@@ -24,7 +24,7 @@ VAL_DIR="/root/.cache/kagglehub/datasets/zkawfanx/gtav-nightrain-rerendered-vers
 # Configuration 1: Quick Test (Fast, Lower Quality)
 # Use this to verify everything works before full training
 train_quick_test() {
-    python train_enhanced.py \
+    python Folk-NeRD-Rain/train_enhanced.py \
         --train_dir "$TRAIN_DIR" \
         --val_dir "$VAL_DIR" \
         --input_subdir rainy \
@@ -43,7 +43,7 @@ train_quick_test() {
 # Configuration 2: Balanced (Good Quality, Reasonable Time)
 # Recommended for most users
 train_balanced() {
-    python train_enhanced.py \
+    python Folk-NeRD-Rain/train_enhanced.py \
         --train_dir "$TRAIN_DIR" \
         --val_dir "$VAL_DIR" \
         --input_subdir rainy \
@@ -70,7 +70,7 @@ train_balanced() {
 # Configuration 3: Full Quality (Best Results, Longer Training)
 # For final model or research
 train_full_quality() {
-    python train_enhanced.py \
+    python Folk-NeRD-Rain/train_enhanced.py \
         --train_dir "$TRAIN_DIR" \
         --val_dir "$VAL_DIR" \
         --input_subdir rainy \
@@ -100,7 +100,7 @@ train_full_quality() {
 train_resume() {
     CHECKPOINT_PATH="./checkpoints/Deraining/models/balanced_v1/model_latest.pth"
     
-    python train_enhanced.py \
+    python Folk-NeRD-Rain/train_enhanced.py \
         --train_dir "$TRAIN_DIR" \
         --val_dir "$VAL_DIR" \
         --input_subdir rainy \
