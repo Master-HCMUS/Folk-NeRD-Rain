@@ -6,8 +6,8 @@
 # =============================================================================
 
 # Dataset paths
-TRAIN_DIR="/root/.cache/kagglehub/datasets/zkawfanx/gtav-nightrain-rerendered-version/versions/1/GTAV-NightRain/train"
-VAL_DIR="/root/.cache/kagglehub/datasets/zkawfanx/gtav-nightrain-rerendered-version/versions/1/GTAV-NightRain/test"
+TRAIN_DIR="/kaggle/input/gtav-nightrain-rerendered-version/GTAV-NightRain/train"
+VAL_DIR="/kaggle/input/gtav-nightrain-rerendered-version/GTAV-NightRain/test"
 
 # For Kaggle, use:
 # TRAIN_DIR="/kaggle/input/gtav-nightrain-rerendered-version/GTAV-NightRain/train"
