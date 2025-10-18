@@ -403,6 +403,10 @@ for epoch in range(start_epoch, args.num_epochs + 1):
                 loss_dict = {'char': loss_char, 'fft': loss_fft, 
                            'edge': loss_edge, 'l1': loss_l1}
         
+        # Ensure loss is scalar (defensive check)
+        if loss.dim() > 0:
+            loss = loss.mean()
+        
         # Backward pass
         if accumulator:
             # Use gradient accumulation

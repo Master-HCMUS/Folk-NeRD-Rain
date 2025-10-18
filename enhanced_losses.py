@@ -193,7 +193,7 @@ class ColorConstancyLoss(nn.Module):
         Args:
             pred: predicted image [B, C, H, W]
         Returns:
-            color constancy loss
+            color constancy loss (scalar)
         """
         mean_rgb = torch.mean(pred, dim=(2, 3), keepdim=True)  # [B, C, 1, 1]
         
@@ -203,7 +203,8 @@ class ColorConstancyLoss(nn.Module):
         d_rb = torch.pow(mr - mb, 2)
         d_gb = torch.pow(mb - mg, 2)
         
-        return torch.sqrt(torch.pow(d_rg, 2) + torch.pow(d_rb, 2) + torch.pow(d_gb, 2))
+        # Return mean over batch dimension to ensure scalar output
+        return torch.mean(torch.sqrt(torch.pow(d_rg, 2) + torch.pow(d_rb, 2) + torch.pow(d_gb, 2)))
 
 
 class CombinedNightRainLoss(nn.Module):
