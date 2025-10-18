@@ -6,7 +6,12 @@ Includes perceptual loss, SSIM loss, and illumination-aware losses
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.models import vgg16
+try:
+    from torchvision.models import vgg16
+    VGG_AVAILABLE = True
+except ImportError:
+    VGG_AVAILABLE = False
+    print("Warning: torchvision not available, perceptual loss disabled")
 from math import exp
 
 
@@ -18,11 +23,21 @@ class PerceptualLoss(nn.Module):
     def __init__(self, layers=['relu1_2', 'relu2_2', 'relu3_3', 'relu4_3'], 
                  weights=[1.0, 1.0, 1.0, 1.0]):
         super(PerceptualLoss, self).__init__()
+        
+        if not VGG_AVAILABLE:
+            raise ImportError("VGG16 requires torchvision. Install with: pip install torchvision")
+        
         self.layers = layers
         self.weights = weights
+        self.device = None  # Will be set on first forward pass
         
         # Load pretrained VGG16
-        vgg = vgg16(pretrained=True).features.eval()
+        try:
+            vgg = vgg16(pretrained=True).features.eval()
+        except:
+            # Fallback for newer torchvision versions
+            from torchvision.models import VGG16_Weights
+            vgg = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).features.eval()
         
         # Extract specific layers
         self.slices = nn.ModuleList()
@@ -48,6 +63,11 @@ class PerceptualLoss(nn.Module):
         Returns:
             perceptual loss value
         """
+        # Move VGG to same device as input (only once)
+        if self.device != pred.device:
+            self.device = pred.device
+            self.slices = self.slices.to(pred.device)
+        
         # Normalize to ImageNet stats
         mean = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).to(pred.device)
         std = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).to(pred.device)
@@ -217,7 +237,11 @@ class CombinedNightRainLoss(nn.Module):
         self.use_color_constancy = use_color_constancy
         
         if use_perceptual:
-            self.perceptual_loss = PerceptualLoss()
+            if not VGG_AVAILABLE:
+                print("Warning: VGG16 not available, disabling perceptual loss")
+                self.use_perceptual = False
+            else:
+                self.perceptual_loss = PerceptualLoss()
         if use_ssim:
             self.ssim_loss = SSIMLoss()
         if use_illumination:

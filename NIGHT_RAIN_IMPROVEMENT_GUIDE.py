@@ -412,38 +412,57 @@ if __name__ == '__main__':
     import torch
     print("Testing enhanced components...")
     
+    # Determine device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Using device: {device}")
+    
     # Test loss
-    from enhanced_losses import CombinedNightRainLoss
-    criterion = CombinedNightRainLoss()
-    pred = torch.rand(1, 3, 256, 256)
-    target = torch.rand(1, 3, 256, 256)
-    loss, loss_dict = criterion(pred, target)
-    print(f"✓ Enhanced loss: {loss.item():.4f}")
-    print(f"  Loss components: {list(loss_dict.keys())}")
+    try:
+        from enhanced_losses import CombinedNightRainLoss
+        criterion = CombinedNightRainLoss()
+        criterion = criterion.to(device)
+        pred = torch.rand(1, 3, 256, 256).to(device)
+        target = torch.rand(1, 3, 256, 256).to(device)
+        loss, loss_dict = criterion(pred, target)
+        print(f"✓ Enhanced loss: {loss.item():.4f}")
+        print(f"  Loss components: {list(loss_dict.keys())}")
+    except Exception as e:
+        print(f"✗ Enhanced loss failed: {e}")
     
     # Test augmentation
-    from augmentations import NightRainAugmentation
-    aug = NightRainAugmentation()
-    img_pair = (target[0], pred[0])
-    aug_pair = aug(img_pair)
-    print(f"✓ Augmentation: {aug_pair[0].shape}")
+    try:
+        from augmentations import NightRainAugmentation
+        aug = NightRainAugmentation()
+        img_pair = (target.cpu()[0], pred.cpu()[0])
+        aug_pair = aug(img_pair)
+        print(f"✓ Augmentation: {aug_pair[0].shape}")
+    except Exception as e:
+        print(f"✗ Augmentation failed: {e}")
     
     # Test attention
-    from enhanced_modules import CBAM
-    attention = CBAM(channels=64)
-    x = torch.rand(1, 64, 128, 128)
-    out = attention(x)
-    print(f"✓ CBAM attention: {out.shape}")
+    try:
+        from enhanced_modules import CBAM
+        attention = CBAM(channels=64).to(device)
+        x = torch.rand(1, 64, 128, 128).to(device)
+        out = attention(x)
+        print(f"✓ CBAM attention: {out.shape}")
+    except Exception as e:
+        print(f"✗ CBAM attention failed: {e}")
     
     # Test training strategy
-    from training_strategies import WarmupCosineScheduler
-    from torch.optim import Adam
-    model = torch.nn.Linear(10, 10)
-    optimizer = Adam(model.parameters())
-    scheduler = WarmupCosineScheduler(optimizer, warmup_epochs=5, 
-                                     total_epochs=100)
-    lr = scheduler.step()
-    print(f"✓ Scheduler: LR = {lr:.6f}")
+    try:
+        from training_strategies import WarmupCosineScheduler
+        from torch.optim import Adam
+        model = torch.nn.Linear(10, 10)
+        optimizer = Adam(model.parameters())
+        scheduler = WarmupCosineScheduler(optimizer, warmup_epochs=5, 
+                                         total_epochs=100)
+        lr = scheduler.step()
+        print(f"✓ Scheduler: LR = {lr:.6f}")
+    except Exception as e:
+        print(f"✗ Scheduler failed: {e}")
     
-    print("\nAll components working! Ready to improve your model.")
+    print("\n" + "="*60)
+    print("Component testing complete!")
     print("See implementation guide above for step-by-step instructions.")
+    print("="*60)
