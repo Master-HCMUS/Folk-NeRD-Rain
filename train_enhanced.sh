@@ -49,8 +49,8 @@ train_balanced() {
         --input_subdir rainy \
         --target_subdir gt \
         --model small \
-        --num_epochs 200 \
-        --batch_size 1 \
+        --num_epochs 100 \
+        --batch_size 3 \
         --patch_size 256 \
         --val_epochs 10 \
         --gradient_accumulation 4 \
