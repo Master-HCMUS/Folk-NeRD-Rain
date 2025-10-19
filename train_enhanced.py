@@ -223,12 +223,13 @@ else:
 
 # Progressive Training
 if args.progressive_training:
+    # Use 160 instead of 128 to ensure divisibility by 32 (avoid pixel_unshuffle errors)
     progressive = ProgressiveTraining(
-        initial_patch_size=128,
+        initial_patch_size=160,
         target_patch_size=args.patch_size,
         transition_epoch=args.num_epochs // 3
     )
-    print(f"\n✓ Progressive Training: 128 → {args.patch_size}")
+    print(f"\n✓ Progressive Training: 160 → {args.patch_size}")
 else:
     progressive = None
 

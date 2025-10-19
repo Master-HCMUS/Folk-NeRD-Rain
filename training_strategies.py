@@ -65,8 +65,10 @@ class ProgressiveTraining:
             progress = epoch / self.transition_epoch
             size_diff = self.target_size - self.initial_size
             self.current_size = int(self.initial_size + size_diff * progress)
-            # Ensure even number
-            self.current_size = (self.current_size // 2) * 2
+            # Ensure divisibility by 32 (required for pixel_unshuffle operations)
+            self.current_size = (self.current_size // 32) * 32
+            # Safety: minimum 128
+            self.current_size = max(128, self.current_size)
         else:
             self.current_size = self.target_size
         
