@@ -55,6 +55,10 @@ parser.add_argument('--model_save_dir', default='./checkpoints', type=str,
 # Model selection
 parser.add_argument('--model', default='small', choices=['small', 'full'], 
                    help='Model size: small (~4M params) or full (~8M params)')
+parser.add_argument('--use_enhanced_arch', action='store_true',
+                   help='Use enhanced architecture with CBAM attention (+2-3 dB PSNR)')
+parser.add_argument('--use_illumination_aware', action='store_true',
+                   help='Use illumination-aware network for night scenes (+2-3 dB on dark images)')
 
 # Training hyperparameters
 parser.add_argument('--num_epochs', default=300, type=int, 
@@ -129,6 +133,8 @@ print("ENHANCED NIGHT RAIN DERAINING TRAINING")
 print("="*80)
 print(f"Session: {session}")
 print(f"Model: {args.model}")
+print(f"Enhanced architecture: {args.use_enhanced_arch}")
+print(f"Illumination-aware: {args.use_illumination_aware}")
 print(f"Training dir: {args.train_dir}")
 print(f"Validation dir: {args.val_dir}")
 print(f"Enhanced loss: {args.use_enhanced_loss}")
@@ -140,14 +146,24 @@ print(f"Progressive training: {args.progressive_training}")
 print("="*80)
 
 ######### Model ###########
-if args.model == 'small':
-    from model_S import MultiscaleNet as myNet
-    print("Using Small Model (~4M parameters)")
+if args.use_illumination_aware:
+    print("\nUsing Illumination-Aware Network (Enhanced + Night Optimization)")
+    from model_enhanced import get_enhanced_model
+    model_restoration = get_enhanced_model('illumination', dim=48 if args.model == 'full' else 40)
+elif args.use_enhanced_arch:
+    print(f"\nUsing Enhanced MultiscaleNet with CBAM Attention")
+    from model_enhanced import get_enhanced_model
+    model_restoration = get_enhanced_model('enhanced', dim=48 if args.model == 'full' else 40)
 else:
-    from model import MultiscaleNet as myNet
-    print("Using Full Model (~8M parameters)")
+    # Original base model
+    if args.model == 'small':
+        from model_S import MultiscaleNet as myNet
+        print("Using Small Model (~4M parameters)")
+    else:
+        from model import MultiscaleNet as myNet
+        print("Using Full Model (~8M parameters)")
+    model_restoration = myNet()
 
-model_restoration = myNet()
 get_parameter_number(model_restoration)
 model_restoration.cuda()
 
