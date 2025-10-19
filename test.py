@@ -34,7 +34,29 @@ else:
     model_restoration = FullNet()
 
 get_parameter_number(model_restoration)
-utils.load_checkpoint(model_restoration, args.weights)
+
+# Load checkpoint and check for EMA weights
+checkpoint = torch.load(args.weights, map_location='cpu')
+if isinstance(checkpoint, dict):
+    if 'ema_shadow' in checkpoint:
+        print("===>Found EMA shadow weights, loading them for better results")
+        # Load EMA shadow weights
+        ema_weights = checkpoint['ema_shadow']
+        model_state = model_restoration.state_dict()
+        for name in model_state.keys():
+            if name in ema_weights:
+                model_state[name] = ema_weights[name]
+        model_restoration.load_state_dict(model_state)
+    elif 'state_dict' in checkpoint:
+        print("===>Loading regular checkpoint weights")
+        utils.load_checkpoint(model_restoration, args.weights)
+    else:
+        print("===>Loading checkpoint (unknown format)")
+        model_restoration.load_state_dict(checkpoint)
+else:
+    print("===>Loading checkpoint directly")
+    model_restoration.load_state_dict(checkpoint)
+
 print("===>Testing using weights: ",args.weights)
 model_restoration.cuda()
 model_restoration = nn.DataParallel(model_restoration)

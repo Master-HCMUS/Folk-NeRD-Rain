@@ -508,18 +508,30 @@ for epoch in range(start_epoch, args.num_epochs + 1):
             best_psnr = psnr_val_rgb
             best_epoch = epoch
             
-            save_dict = {
-                'epoch': epoch,
-                'state_dict': model_restoration.state_dict(),
-                'optimizer': optimizer.state_dict(),
-                'best_psnr': best_psnr
-            }
-            
+            # If using EMA, save EMA weights as the main state_dict for easier testing
             if ema:
-                save_dict['ema_shadow'] = ema.shadow
+                # Temporarily apply EMA weights
+                ema.apply_shadow()
+                save_dict = {
+                    'epoch': epoch,
+                    'state_dict': model_restoration.state_dict(),  # This now contains EMA weights
+                    'optimizer': optimizer.state_dict(),
+                    'best_psnr': best_psnr,
+                    'ema_shadow': ema.shadow.copy(),  # Keep a copy for resume training
+                    'using_ema': True
+                }
+                ema.restore()  # Restore training weights
+            else:
+                save_dict = {
+                    'epoch': epoch,
+                    'state_dict': model_restoration.state_dict(),
+                    'optimizer': optimizer.state_dict(),
+                    'best_psnr': best_psnr,
+                    'using_ema': False
+                }
             
             torch.save(save_dict, os.path.join(model_dir, "model_best.pth"))
-            print(f"✓ New best model saved! PSNR: {best_psnr:.4f} dB")
+            print(f"✓ New best model saved! PSNR: {psnr_val_rgb:.4f} dB")
         
         print(f"[Epoch {epoch}] PSNR: {psnr_val_rgb:.4f} dB | "
               f"Best: {best_psnr:.4f} dB (Epoch {best_epoch})")
