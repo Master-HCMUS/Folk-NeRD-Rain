@@ -94,8 +94,7 @@ with torch.no_grad():
         restored = torch.clamp(restored, 0, 1)
         restored = restored.permute(0, 2, 3, 1).cpu().detach().numpy()
 
-        # Save only the first image (merged result from all windows)
-        # filenames[0] is the original filename without window suffix
-        restored_img = img_as_ubyte(restored[0])
-        base_filename = filenames[0] if isinstance(filenames, (list, tuple)) else filenames
-        utils.save_img(os.path.join(result_dir, base_filename + '.png'), restored_img)
+        for batch in range(len(restored)):
+            restored_img = restored[batch]
+            restored_img = img_as_ubyte(restored[batch])
+            utils.save_img((os.path.join(result_dir, filenames[batch]+'.png')), restored_img)
