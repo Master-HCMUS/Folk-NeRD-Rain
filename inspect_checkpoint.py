@@ -14,10 +14,19 @@ print("="*80)
 print("CHECKPOINT INSPECTOR")
 print("="*80)
 
+# Handle PyTorch 2.6+ compatibility
 try:
     checkpoint = torch.load(args.checkpoint, map_location='cpu', weights_only=False)
-except:
-    checkpoint = torch.load(args.checkpoint, map_location='cpu')
+except TypeError:
+    # Fallback for older PyTorch versions
+    try:
+        checkpoint = torch.load(args.checkpoint, map_location='cpu')
+    except Exception as e:
+        print(f"\n❌ Error loading checkpoint: {e}")
+        exit(1)
+except Exception as e:
+    print(f"\n❌ Error loading checkpoint: {e}")
+    exit(1)
 
 print(f"\n📁 File: {args.checkpoint}")
 print(f"📦 Type: {type(checkpoint)}")

@@ -36,7 +36,13 @@ else:
 get_parameter_number(model_restoration)
 
 # Load checkpoint and check for EMA weights
-checkpoint = torch.load(args.weights, map_location='cpu')
+# Handle PyTorch 2.6+ weights_only parameter change
+try:
+    checkpoint = torch.load(args.weights, map_location='cpu', weights_only=False)
+except TypeError:
+    # Fallback for older PyTorch versions
+    checkpoint = torch.load(args.weights, map_location='cpu')
+
 if isinstance(checkpoint, dict):
     if 'ema_shadow' in checkpoint:
         print("===>Found EMA shadow weights, loading them for better results")

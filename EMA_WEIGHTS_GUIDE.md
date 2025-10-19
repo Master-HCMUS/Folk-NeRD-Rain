@@ -133,6 +133,12 @@ EMA weights are **averaged and stable**, avoiding these issues.
   - [ ] Images are in [0, 1] range after loading
   - [ ] No additional normalization in data loader
 
+**PyTorch 2.6 Compatibility:**
+- If you see `_pickle.UnpicklingError: Weights only load failed`:
+  - ✅ Updated `test.py` now uses `weights_only=False` automatically
+  - ✅ This is safe for checkpoints you trained yourself
+  - ⚠️ Only load checkpoints from trusted sources
+
 ## Summary
 
 **Before Fix:**

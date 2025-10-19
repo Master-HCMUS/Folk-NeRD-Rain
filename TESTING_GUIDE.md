@@ -82,15 +82,25 @@ RuntimeError: Error(s) in loading state_dict for MultiscaleNet:
    python test.py --model small ...
    ```
 
-### Error 2: Weights only load failed
+### Error 2: Weights only load failed (PyTorch 2.6+)
 
 ```
-_pickle.UnpicklingError: Weights only load failed.
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded...
+Unsupported global: GLOBAL numpy.core.multiarray.scalar was not an allowed global...
 ```
 
-**Cause:** PyTorch 2.6+ changed default `weights_only` parameter.
+**Cause:** PyTorch 2.6+ changed default `weights_only` parameter from `False` to `True` for security.
 
-**Solution:** This has been fixed in the latest `utils/model_utils.py`. Make sure you have the updated version with `safe_torch_load()` function.
+**Solution:** ✅ **FIXED** in latest `test.py`! The script now automatically uses `weights_only=False` for your own trusted checkpoints.
+
+If you still see this error:
+1. Update `test.py` to the latest version
+2. Or manually add `weights_only=False`:
+   ```python
+   checkpoint = torch.load(args.weights, map_location='cpu', weights_only=False)
+   ```
+
+**Note:** Only load checkpoints from trusted sources (your own training).
 
 ### Error 3: CUDA out of memory
 
