@@ -218,10 +218,10 @@ class CombinedNightRainLoss(nn.Module):
                  use_color_constancy=True,
                  char_weight=1.0,
                  fft_weight=0.01,
-                 edge_weight=0.05,
+                 edge_weight=0.01,  # Reduced from 0.05 - too high sharpens rain streaks
                  perceptual_weight=0.1,
-                 ssim_weight=0.5,
-                 illumination_weight=0.3,
+                 ssim_weight=0.3,  # Reduced from 0.5 - can preserve rain structure
+                 illumination_weight=0.2,  # Reduced from 0.3 - less aggressive brightening
                  color_weight=0.01):
         super(CombinedNightRainLoss, self).__init__()
         

@@ -178,6 +178,15 @@ class LowLightEnhancementModule(nn.Module):
     """
     Dedicated module for low-light enhancement
     Can be inserted before the main deraining network
+    
+    WARNING: This module enhances brightness BEFORE deraining, which can
+    inadvertently amplify rain streaks. For night rain deraining, consider:
+    1. Using this module AFTER deraining (not before)
+    2. Reducing enhancement strength (currently 0.3)
+    3. Disabling this module entirely and relying on illumination-aware loss
+    
+    Recommended: Do NOT add this to the forward pass of deraining models.
+    Use illumination_aware_loss instead during training.
     """
     def __init__(self, channels=32):
         super(LowLightEnhancementModule, self).__init__()

@@ -400,7 +400,8 @@ for epoch in range(start_epoch, args.num_epochs + 1):
                            criterion_edge(restored[2], target[2])
                 loss_l1 = criterion_L1(restored[3], target[1]) + \
                          criterion_L1(restored[5], target[2])
-                loss = loss_char + 0.01 * loss_fft + 0.05 * loss_edge + 0.1 * loss_l1
+                # Reduced edge_weight from 0.05 to 0.01 to avoid sharpening rain streaks
+                loss = loss_char + 0.01 * loss_fft + 0.01 * loss_edge + 0.1 * loss_l1
                 loss_dict = {'char': loss_char, 'fft': loss_fft, 
                            'edge': loss_edge, 'l1': loss_l1}
         
