@@ -17,8 +17,8 @@ class NightRainAugmentation:
     """
     def __init__(self, 
                  brightness_range=(0.7, 1.3),
-                 contrast_range=(0.8, 1.2),
-                 saturation_range=(0.8, 1.2),
+                 contrast_range=(0.95, 1.05),  # ⚠️ REDUCED from (0.8, 1.2) - high contrast sharpens rain
+                 saturation_range=(0.9, 1.1),  # ⚠️ REDUCED from (0.8, 1.2) - gentler color augmentation
                  gamma_range=(0.8, 1.2),
                  noise_std=0.02,
                  apply_prob=0.5):

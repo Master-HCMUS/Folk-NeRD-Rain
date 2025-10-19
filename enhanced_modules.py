@@ -36,18 +36,32 @@ class SpatialAttention(nn.Module):
     """
     Spatial Attention Module
     Helps model focus on rain-affected regions vs clean regions
+    
+    WARNING: Max pooling can focus on high-contrast rain streaks!
+    Use with caution for deraining tasks.
     """
-    def __init__(self, kernel_size=7):
+    def __init__(self, kernel_size=7, use_max=True):
         super(SpatialAttention, self).__init__()
         padding = kernel_size // 2
-        self.conv = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
+        # Use only 1 channel if not using max (avg only)
+        in_channels = 2 if use_max else 1
+        self.conv = nn.Conv2d(in_channels, 1, kernel_size, padding=padding, bias=False)
         self.sigmoid = nn.Sigmoid()
+        self.use_max = use_max
     
     def forward(self, x):
         avg_out = torch.mean(x, dim=1, keepdim=True)
-        max_out, _ = torch.max(x, dim=1, keepdim=True)
-        x_cat = torch.cat([avg_out, max_out], dim=1)
+        
+        if self.use_max:
+            max_out, _ = torch.max(x, dim=1, keepdim=True)
+            x_cat = torch.cat([avg_out, max_out], dim=1)
+        else:
+            # For deraining: use only avg to avoid focusing on high-contrast rain
+            x_cat = avg_out
+        
         attention = self.sigmoid(self.conv(x_cat))
+        # Soften attention to avoid over-emphasis
+        attention = 0.5 + 0.5 * attention  # Range [0.5, 1.0] instead of [0, 1]
         return x * attention
 
 
@@ -55,11 +69,15 @@ class CBAM(nn.Module):
     """
     Convolutional Block Attention Module (CBAM)
     Combines channel and spatial attention
+    
+    For deraining: uses gentler spatial attention without max pooling
+    to avoid focusing on high-contrast rain streaks.
     """
-    def __init__(self, channels, reduction=16, kernel_size=7):
+    def __init__(self, channels, reduction=16, kernel_size=7, use_max_spatial=False):
         super(CBAM, self).__init__()
         self.channel_attention = ChannelAttention(channels, reduction)
-        self.spatial_attention = SpatialAttention(kernel_size)
+        # For deraining, disable max pooling in spatial attention
+        self.spatial_attention = SpatialAttention(kernel_size, use_max=use_max_spatial)
     
     def forward(self, x):
         x = self.channel_attention(x)
