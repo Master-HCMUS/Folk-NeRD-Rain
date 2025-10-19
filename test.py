@@ -5,8 +5,8 @@ import torch
 from torch.utils.data import DataLoader
 import utils
 from data_RGB import get_test_data
-from model import MultiscaleNet as mynet
-#from model_S import MultiscaleNet as mynet
+from model import MultiscaleNet as FullNet
+from model_S import MultiscaleNet as SmallNet
 from skimage import img_as_ubyte
 from get_parameter_number import get_parameter_number
 from tqdm import tqdm
@@ -15,7 +15,8 @@ from layers import *
 parser = argparse.ArgumentParser(description='Image Deraining')
 parser.add_argument('--input_dir', default='./Datasets/Rain200L/test/input/', type=str, help='Directory of validation images')
 parser.add_argument('--output_dir', default='./results/Rain200L', type=str, help='Directory of validation images')
-parser.add_argument('--weights', default='', type=str, help='./checkpoints') 
+parser.add_argument('--weights', default='', type=str, help='Path to checkpoint file') 
+parser.add_argument('--model', default='full', type=str, choices=['full', 'small'], help='Model type: full or small')
 parser.add_argument('--gpus', default='0', type=str, help='CUDA_VISIBLE_DEVICES')
 parser.add_argument('--win_size', default=256, type=int, help='window size')
 args = parser.parse_args()
@@ -23,7 +24,15 @@ result_dir = args.output_dir
 win = args.win_size
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus
-model_restoration = mynet()
+
+# Select model based on argument
+if args.model == 'small':
+    print("Using Small Model (model_S.py)")
+    model_restoration = SmallNet()
+else:
+    print("Using Full Model (model.py)")
+    model_restoration = FullNet()
+
 get_parameter_number(model_restoration)
 utils.load_checkpoint(model_restoration, args.weights)
 print("===>Testing using weights: ",args.weights)

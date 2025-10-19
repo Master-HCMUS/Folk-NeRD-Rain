@@ -38,15 +38,53 @@ def load_checkpoint(model, weights):
     # print(checkpoint)
     try:
         model.load_state_dict(checkpoint["state_dict"])
-    except:
+    except Exception as e:
+        # Try removing 'module.' prefix (from DataParallel)
         state_dict = checkpoint["state_dict"]
         new_state_dict = OrderedDict()
         for k, v in state_dict.items():
             # print(k)
-            name = k[7:] # remove `module.`
+            name = k[7:] if k.startswith('module.') else k  # remove `module.` if present
             new_state_dict[name] = v
-
-        model.load_state_dict(new_state_dict)
+        
+        try:
+            model.load_state_dict(new_state_dict)
+        except RuntimeError as load_error:
+            # Provide helpful error message
+            model_keys = set(model.state_dict().keys())
+            checkpoint_keys = set(new_state_dict.keys())
+            
+            missing_keys = model_keys - checkpoint_keys
+            unexpected_keys = checkpoint_keys - model_keys
+            
+            print("\n" + "="*80)
+            print("ERROR: Checkpoint architecture mismatch!")
+            print("="*80)
+            print(f"\nCheckpoint file: {weights}")
+            
+            if missing_keys:
+                print(f"\nMissing keys in checkpoint ({len(missing_keys)} keys):")
+                for key in list(missing_keys)[:5]:  # Show first 5
+                    print(f"  - {key}")
+                if len(missing_keys) > 5:
+                    print(f"  ... and {len(missing_keys)-5} more")
+            
+            if unexpected_keys:
+                print(f"\nUnexpected keys in checkpoint ({len(unexpected_keys)} keys):")
+                for key in list(unexpected_keys)[:5]:  # Show first 5
+                    print(f"  - {key}")
+                if len(unexpected_keys) > 5:
+                    print(f"  ... and {len(unexpected_keys)-5} more")
+            
+            print("\nPossible solutions:")
+            print("  1. Check if you're using the correct model:")
+            print("     - For small model: use 'from model_S import MultiscaleNet'")
+            print("     - For full model: use 'from model import MultiscaleNet'")
+            print("  2. Make sure the checkpoint matches your model architecture")
+            print("  3. Use the correct checkpoint file (check training logs)")
+            print("="*80 + "\n")
+            
+            raise load_error
 
 
 def load_checkpoint_compress_doconv(model, weights):
