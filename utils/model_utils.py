@@ -2,6 +2,20 @@ import torch
 import os
 from collections import OrderedDict
 import numpy as np
+
+def safe_torch_load(weights):
+    """
+    Safe torch.load wrapper for PyTorch 2.6+ compatibility.
+    PyTorch 2.6 changed default weights_only from False to True.
+    For trusted checkpoints, we use weights_only=False.
+    """
+    try:
+        # Try with weights_only=False for PyTorch 2.6+
+        return torch.load(weights, weights_only=False)
+    except TypeError:
+        # Fallback for older PyTorch versions without weights_only parameter
+        return torch.load(weights)
+
 def freeze(model):
     for p in model.parameters():
         p.requires_grad=False
@@ -20,7 +34,7 @@ def save_checkpoint(model_dir, state, session):
     torch.save(state, model_out_path)
 
 def load_checkpoint(model, weights):
-    checkpoint = torch.load(weights)
+    checkpoint = safe_torch_load(weights)
     # print(checkpoint)
     try:
         model.load_state_dict(checkpoint["state_dict"])
@@ -36,7 +50,7 @@ def load_checkpoint(model, weights):
 
 
 def load_checkpoint_compress_doconv(model, weights):
-    checkpoint = torch.load(weights)
+    checkpoint = safe_torch_load(weights)
     # print(checkpoint)
     # state_dict = OrderedDict()
     # try:
@@ -78,7 +92,7 @@ def load_checkpoint_compress_doconv(model, weights):
             do_state_dict[k] = v
     model.load_state_dict(do_state_dict)
 def load_checkpoint_hin(model, weights):
-    checkpoint = torch.load(weights)
+    checkpoint = safe_torch_load(weights)
     # print(checkpoint)
     try:
         model.load_state_dict(checkpoint)
@@ -90,7 +104,7 @@ def load_checkpoint_hin(model, weights):
             new_state_dict[name] = v
         model.load_state_dict(new_state_dict)
 def load_checkpoint_multigpu(model, weights):
-    checkpoint = torch.load(weights)
+    checkpoint = safe_torch_load(weights)
     state_dict = checkpoint["state_dict"]
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
@@ -99,12 +113,12 @@ def load_checkpoint_multigpu(model, weights):
     model.load_state_dict(new_state_dict)
 
 def load_start_epoch(weights):
-    checkpoint = torch.load(weights)
+    checkpoint = safe_torch_load(weights)
     epoch = checkpoint["epoch"]
     return epoch
 
 def load_optim(optimizer, weights):
-    checkpoint = torch.load(weights)
+    checkpoint = safe_torch_load(weights)
     optimizer.load_state_dict(checkpoint['optimizer'])
     # for p in optimizer.param_groups: lr = p['lr']
     # return lr
