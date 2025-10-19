@@ -150,11 +150,13 @@ Total params: 8.03 M
 Results saved to `--output_dir`:
 ```
 results/Rain200L/
-├── 1.png
+├── 1.png          # ✅ One merged image per input
 ├── 2.png
 ├── 3.png
 ...
 ```
+
+**Note:** Each input image produces **ONE output image** (the merged result from all window patches). The old version incorrectly saved multiple window files (e.g., `1_00.png`, `1_01.png`, etc.), but this has been fixed.
 
 ## Evaluate Results
 
@@ -274,6 +276,29 @@ If you encounter issues:
    - Modify test.py to use mixed precision
    - 2× faster, uses less memory
    - May slightly reduce quality
+
+---
+
+## FAQ
+
+### Q: Why did I get 4 images (_00, _01, _10, _11) for each input?
+
+**A:** This was a bug in the old version! The script was saving intermediate window patches instead of just the merged result. 
+
+**✅ FIXED:** Updated `test.py` now saves only ONE merged output per input image.
+
+If you're still seeing multiple files:
+1. Update `test.py` to the latest version
+2. Re-run testing
+3. Each input should produce exactly ONE output
+
+### Q: What is window partitioning?
+
+**A:** For memory efficiency, large images are split into overlapping windows (default 256×256), processed separately, then merged back. You only see the final merged result.
+
+### Q: Should I delete the old window files (_00, _01, etc.)?
+
+**A:** Yes, those were incorrectly saved intermediate results. Delete them and re-run with the fixed `test.py`.
 
 ---
 
